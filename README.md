@@ -1,4 +1,4 @@
-# Autologger - Simple, Convenient, Automatic (?) Logging for Common Lisp
+# AUTOLOGGER - Simple, Convenient, Automatic (?) Logging for Common Lisp
 
 AUTOLOGGER is a simple (and hopefully convenient) logging tool for Common Lisp, built on the back of [Image Based Common Lisp (IBCL) by Pascal J. Bourguignon](https://www.informatimago.com/develop/lisp/com/informatimago/small-cl-pgms/ibcl/), a very useful tool for tracking the source code of any functions you define, among other things.
 
