@@ -52,6 +52,16 @@ The best part of Autologger is that it will recursively step through a function 
 ![Screenshot](https://github.com/ashok-khanna/autologger/blob/5ccc1db899c8b2382df8debd5acecc9c2fa18da5/screenshot.png)
 
 ## Exported Functions
+Function | Description 
+-------- | -----------
+*(launch expr)* | Evaluates the supplied form and launches an Emac buffer with the loggin results
+*(log &rest symbols)* | Turns on logging for the supplied function(s) (accepts a &rest argument)
+*(log-all-within &rest symbols)* | Turns on logging for all user-defined functions within the supplied function(s) (accepts a &rest argument)
+*(unlog &rest symbols)* | Turns off logging for the supplied function(s) (accepts a &rest argument)
+*(unlog-all)* | Remove logging from all functions
+*(select-logs symbol)* | Opens an Emacs Buffer to control logging for each function within the supplied function
+*(all-logs)* | Opens an Emacs Buffer listing all logged functions to control logging for each
+
 
 ## Limitations & Future Developments
 Autologger is in **experimental and proof of concept state** so there may (likely) be some unintended consequences and bugs. Feel free to fork the project or submit issues for any bugs/improvements. Note that Autologger currently works for functions that do not have any `&optional`, `&key` and `&rest` lambda list keywords. It does not work for macros as well. My todo includes these features and also to improve and document the Elisp code (its more Italian than spaghetti at the moment). I also want to add some unit tests and make the overall program more reliable / intuitive.
