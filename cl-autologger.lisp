@@ -152,7 +152,7 @@ and reset it to its old definition (prior to transformation to include logging).
 
 (defun log-all-within (&rest symbols)
   "Turn logging on for all user-defined top-level functions within FUNCTION-NAME."
-  (loop for function-name in function-names
+  (loop for function-name in symbols
      do (let ((function-symbols (get-functions-in-definition function-name)))
 	  (log function-symbols))))
 
