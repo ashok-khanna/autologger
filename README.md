@@ -1,10 +1,11 @@
-# AUTOLOGGER - Simple, Automatic (?) Logging for Common Lisp
+# Autologger - Simple, Automatic (?) Logging for Common Lisp
 
-Autologger is a simple (and hopefully convenient) logging tool for Common Lisp, built on the back of [Image Based Common Lisp (IBCL) by Pascal J. Bourguignon](https://www.informatimago.com/develop/lisp/com/informatimago/small-cl-pgms/ibcl/), a very useful tool for tracking the source code of any functions you define, among other things. The program requires Emacs currently, although it is on my list to make it available to other editing enviornments. Autologger is in ***experimental state*** so there may (likely) be some unintended consequences. Feel free to fork the project or submit issues for any bugs/improvements.
+Autologger is a simple (and hopefully convenient) logging tool for Common Lisp, built on the back of [Image Based Common Lisp (IBCL) by Pascal J. Bourguignon](https://www.informatimago.com/develop/lisp/com/informatimago/small-cl-pgms/ibcl/), a very useful tool for tracking the source code of any functions you define, among other things.
+
+The purpose of Autologger is to **enable logging without polluting your codebase** and allow for **convenient, keyboard-based navigation of logging** across nested function calls.
 
 
-
-# Usage
+# Part 1: Usage
 Autologger works off transforming your functions (not macros) to a version that logs both the incoming arguments and the outgoing results to a global list, which is then displayed by Emacs. You can turn logging on for a function with `LOG` and turn logging off with `UNLOG`:
 
 ```lisp
@@ -29,7 +30,7 @@ You can view logging results for a logged function with `LAUNCH`. This will brin
 IBCL > (log:launch (sum 1 2)
 ```
 
-The best part of Autologger is that it will recursively step through a function call and log the arguments/results of all functions logged. The difference to STEP is that you can move backwards and upwards as well as we are not stepping through the function call, but rather stepping through a log of the logged function calls within it. Furthermore, you have granular control over which functions to log. The below example partly illustrates this.
+The best part of Autologger is that it will recursively step through a function call and log the arguments/results of all functions logged. The difference to `CL:STEP` is that you can move backwards and upwards as well as we are not stepping through the function call, but rather stepping through a log of the logged function calls within it. Furthermore, you have granular control over which functions to log. The below example partly illustrates this.
 
 ```lisp
 (defun sum (a b) (+ a b))
@@ -48,10 +49,14 @@ The best part of Autologger is that it will recursively step through a function 
 
 (log:launch (complex-fn 1 2))
 ```
+![Screenshot](https://github.com/ashok-khanna/autologger/blob/5ccc1db899c8b2382df8debd5acecc9c2fa18da5/screenshot.png)
 
-Note that Autologger currently works for functions that do not have any `&optional`, `&key` and `&rest` lambda list keywords. It does not work for macros as well.
+## Exported Functions
 
-# Installation
+## Limitations & Future Developments
+Autologger is in **experimental and proof of concept state** so there may (likely) be some unintended consequences and bugs. Feel free to fork the project or submit issues for any bugs/improvements. Note that Autologger currently works for functions that do not have any `&optional`, `&key` and `&rest` lambda list keywords. It does not work for macros as well. My todo includes these features and also to improve and document the Elisp code (its more Italian than spaghetti at the moment). I also want to add some unit tests and make the overall program more reliable / intuitive.
+
+# Part 2: Installation
 Autologger consists of two modules, `cl-autologger.lisp` and `autologger.asd` for Common Lisp and *el-autologger.el* for Emacs/Elisp. It is also built upon IBCL. You can download IBCL with the following:
 
 ```lisp
@@ -88,75 +93,3 @@ You will need to switch from the `CL` package and into `IBCL` in your programs t
   (:use :ibcl)           ; <-- Use :IBCL here and not :CL
   (:export ...))
 ```
-
-
-
-
-## 2. USING AUTOLOGGER
-The six functions of AUTOLOGGER are `LOG`, `UNLOG`, `SELECT-LOGS`, `ALL-LOGS`, `UNLOG-ALL` and `LAUNCH`.
-
-`LOG` is used to turn on logging for the supplied function. It accepts one argument (a symbol denoting a function) and *redefines* the supplied function to start logging its inputs and outputs. As an example, the below shows how a simple function SUM is redefined by the autologging process.
-
-```lisp
-IBCL-USER> (defun sum (a b)
-             (+ a b))
-
-IBCL-USER> (autologger:log 'sum)
-
-;; Now let us view the revised source code (using IBCL's SOURCE function)
-
-IBCL-USER> (source 'sum :function)
-
-;; Output
-
-(DEFUN SUM
-    (A B)
-  (PROGN
-   (INCF AUTOLOGGER::*COUNTER*)
-   (LET ((AUTOLOGGER::*LEVELS*
-          (LET ((AUTOLOGGER::X (AUTOLOGGER::MY-COPY AUTOLOGGER::*LEVELS*)))
-            (VECTOR-PUSH-EXTEND AUTOLOGGER::*COUNTER* AUTOLOGGER::X)
-            AUTOLOGGER::X))
-         (AUTOLOGGER::*COUNTER* 0))
-     (LET ((AUTOLOGGER::RESULT
-            (FUNCALL
-             (LAMBDA (AUTOLOGGER::*COUNTER* AUTOLOGGER::*LEVELS* A B) (+ A B))
-             AUTOLOGGER::*COUNTER* AUTOLOGGER::*LEVELS* A B)))
-       (PUSH
-        (CONS (AUTOLOGGER::VECTOR-TO-LIST AUTOLOGGER::*LEVELS*)
-              (LIST 'SUM '(A B) '((+ A B))
-                    (MAPCAR
-                     (LAMBDA (AUTOLOGGER::A) (FORMAT NIL "~s" AUTOLOGGER::A))
-                     '(A B))
-                    (FORMAT NIL "~s" AUTOLOGGER::RESULT)))
-        AUTOLOGGER::*FLAT-LIST*)
-       AUTOLOGGER::RESULT))))
-       
-;; Yikes!
-```
-
-As you can see, AUTOLOGGER completely redefined our simple SUM function. You don't have to worry about the details, but basically we are adding in some automatic logging into the function. You can turn off logging and return back to the old function with `UNLOG`, as in the below example.
-
-```lisp
-IBCL-USER> (autologger-unlog 'sum)
-
-;; Now let us view the source code
-
-IBCL-USER> (source 'sum :function)
-
-(DEFUN SUM
-    (A B)
-  (+ A B))
-  
-;; ALl is well again
-```
-
-Perhaps the most important function is `LAUNCH`, which evaluates an expression and launches an Emacs Output buffer with the results of the logging.
-
-# 2: Installation
-### IBCL Dependency
-
-### Installing Autologger
-
-
-
