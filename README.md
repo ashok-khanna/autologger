@@ -30,9 +30,12 @@ You can view logging results for a logged function with `LAUNCH`. This will brin
 IBCL > (log:launch (sum 1 2)
 ```
 
-The best part of Autologger is that it will recursively step through a function call and log the arguments/results of all functions logged. The difference to `CL:STEP` is that you can move backwards and upwards as well as we are not stepping through the function call, but rather stepping through a log of the logged function calls within it. Furthermore, you have granular control over which functions to log. The below example partly illustrates this.
+The best part of Autologger is that it will recursively step through a function call and log the arguments/results of all functions logged. The difference to `CL:STEP` is that you can move backwards and upwards as well as we are not stepping through the function call, but rather stepping through a log of the logged function calls within it. Furthermore, you have granular control over which functions to log. The below full example partly illustrates this.
+
+## Working Example (After Installation)
 
 ```lisp
+(in-package :ibcl)
 (defun sum (a b) (+ a b))
 (defun prd (a b) (* a b))
 (defun div (a b) (/ a b))
