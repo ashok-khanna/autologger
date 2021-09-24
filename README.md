@@ -56,11 +56,11 @@ Function | Description
 -------- | -----------
 *(launch expr)* | Evaluates the supplied form and launches an Emac buffer with the loggin results
 *(log &rest symbols)* | Turns on logging for the supplied function(s) (accepts a &rest argument)
-*(log-all-within &rest symbols)* | Turns on loggin for all user-defined top-level functions within the supplied function(s) (accepts a &rest argument)
+*(log-all-within &rest symbols)* | Turns on logging for all user-defined functions within the supplied function(s) (accepts a &rest argument)
 *(unlog &rest symbols)* | Turns off logging for the supplied function(s) (accepts a &rest argument)
 *(unlog-all)* | Remove logging from all functions
-*(select-logs symbol)* | Opens an Emacs Buffer to allow you to select which functions within SYMBOL you wish to turn logging on/off for
-*(all-logs)* | Opens an Emacs Buffer with a list of all logged functions to allow you to turn logging on/off for each
+*(select-logs symbol)* | Opens an Emacs Buffer to control logging for each function within the supplied function
+*(all-logs)* | Opens an Emacs Buffer listing all logged functions to control logging for each
 
 
 ## Limitations & Future Developments
