@@ -71,7 +71,7 @@ Function | Description
 Autologger is in **experimental and proof of concept state** so there may (likely) be some unintended consequences and bugs. Feel free to fork the project or submit issues for any bugs/improvements. Note that Autologger currently works for functions that do not have any `&optional`, `&key` and `&rest` lambda list keywords. It does not work for macros as well. My todo includes these features and also to improve and document the Elisp code (its more Italian than spaghetti at the moment). I also want to add some unit tests and make the overall program more reliable / intuitive.
 
 # Part 2: Installation
-Autologger consists of two modules, `cl-autologger.lisp` and `autologger.asd` for Common Lisp and *el-autologger.el* for Emacs/Elisp. It is also built upon IBCL. You can download IBCL with the following:
+Autologger consists of two modules, `cl-autologger.lisp` and `autologger.asd` for Common Lisp and `el-autologger.el` for Emacs/Elisp. It is also built upon IBCL. You can download IBCL with the following:
 
 ```lisp
 (ql:quickload :com.informatimago.common-lisp.lisp.ibcl)
