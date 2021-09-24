@@ -129,7 +129,6 @@ We use lists here vs. a structure as we transfer this data to Emacs via Swank."
      (let ((result ,expr))
        (swank::eval-in-emacs
 	`(autologger-create-buffer ',*flat-list*))
-       (print *flat-list*)
        result)))
 
 (defun log (symbol)
