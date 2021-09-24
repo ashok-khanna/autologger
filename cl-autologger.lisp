@@ -36,7 +36,7 @@
 (defpackage :autologger
   (:use :ibcl)
   (:shadow :log)
-  (:export :log :unlog :clear-all-logs :launch :select-logs :all-logs :show-all-logs)
+  (:export :log :unlog :unlog-all :launch :select-logs :all-logs :log-all-within)
   (:nicknames :log)
   (:documentation " 
 
@@ -131,37 +131,36 @@ We use lists here vs. a structure as we transfer this data to Emacs via Swank."
 	`(autologger-create-buffer ',*flat-list*))
        result)))
 
-(defun log (symbol)
+(defun log (&rest symbols)
   "Add a function to the *logged-functions* table unless it already is there.
 Store its unlogged source code within the hash table."
-  (unless (gethash symbol *logged-functions*)
-    (let ((source-def (ibcl:source symbol :function)))
-      (unless (contains-lambda-list-keywords source-def)
-	(setf (gethash symbol *logged-functions*) source-def)
-	(eval `(log-defun ,(second source-def) ,(third source-def) ,@(nthcdr 3 source-def)))))))
+  (loop for symbol in symbols
+     do (unless (gethash symbol *logged-functions*)
+	  (let ((source-def (ibcl:source symbol :function)))
+	    (unless (contains-lambda-list-keywords source-def)
+	      (setf (gethash symbol *logged-functions*) source-def)
+	      (eval `(log-defun ,(second source-def) ,(third source-def) ,@(nthcdr 3 source-def))))))))
 
-(defun unlog (symbol)
+(defun unlog (&rest symbols)
   "Remove a function from the *logged-functions* table
 and reset it to its old definition (prior to transformation to include logging)."
-  (let ((orig-source (gethash symbol *logged-functions*)))
-    (eval `(ibcl:defun ,(second orig-source) ,(third orig-source) ,@(nthcdr 3 orig-source))))
-  (remhash symbol *logged-functions*))
+  (loop for symbol in symbols
+     do (progn
+	  (let ((orig-source (gethash symbol *logged-functions*)))
+	    (eval `(ibcl:defun ,(second orig-source) ,(third orig-source) ,@(nthcdr 3 orig-source))))
+	  (remhash symbol *logged-functions*))))
 
-(defun clear-all-logs ()
+(defun log-all-within (&rest symbols)
+  "Turn logging on for all user-defined top-level functions within FUNCTION-NAME."
+  (loop for function-name in function-names
+     do (let ((function-symbols (get-functions-in-definition function-name)))
+	  (log function-symbols))))
+
+(defun unlog-all ()
   "Unlog all functions in *logged-functions*."
   (loop for key being the hash-keys of *logged-functions*
      do (unlog key))
   (print "All logged functions cleared."))
-
-(defun show-all-logs ()
-  (declare (special *logged-functions*))
-  (loop for key in (hash-keys *logged-functions*)
-     do (print key)))
-
-(defun all-logs ()
-  "Extract all logged functions found in *logged-functions* and render Autologger's Emacs Menu Buffer."
-  (let ((log-symbols-list (log-symbols-list "all-logs" (hash-keys *logged-functions*))))
-    (swank::eval-in-emacs `(autologger-create-menu-buffer ',log-symbols-list))))
 
 (defun select-logs (function-name)
   "Extract all user-defined top-level functions within FUNCTION-NAME and render Autologger's Emacs Menu Buffer."
@@ -169,6 +168,11 @@ and reset it to its old definition (prior to transformation to include logging).
     (let ((log-symbols-list (log-symbols-list function-name function-symbols)))
       (print log-symbols-list)
       (swank::eval-in-emacs `(autologger-create-menu-buffer ',log-symbols-list)))))
+
+(defun all-logs ()
+  "Extract all logged functions found in *logged-functions* and render Autologger's Emacs Menu Buffer."
+  (let ((log-symbols-list (log-symbols-list "all-logs" (hash-keys *logged-functions*))))
+    (swank::eval-in-emacs `(autologger-create-menu-buffer ',log-symbols-list))))
 
 
 
