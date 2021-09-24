@@ -5,6 +5,10 @@
 ;;;; MODIFICATIONS
 ;;;;    2021-09-24 <AK> Initial Version
 ;;;; BUGS
+;;;;   Logging functions when not in IBCL causes errors
+;;;;   Logged functions cannot have &key, &optional and &rest parameters as
+;;;;     we use a funcall/lambda in LOG-DEFUN and such arguments cannot be easily
+;;;;     spliced into the funcall [We will try and modify in the future to allow this]
 ;;;;   Only logs functions, not macros (no type check currently applied to
 ;;;;     prevent this)
 ;;;;   Does not have full code walker, so when trying to collect all functions
@@ -32,7 +36,7 @@
 (defpackage :autologger
   (:use :ibcl)
   (:shadow :log)
-  (:export :log :unlog :unlog-all :launch :select-logs :all-logs)
+  (:export :log :unlog :clear-all-logs :launch :select-logs :all-logs :show-all-logs)
   (:nicknames :log)
   (:documentation " 
 
@@ -104,9 +108,9 @@ its arguments and results into global variable *flat-list*."
   "Pushes logging data to *flat-list* as strings (except logging-level, which is a list).
 We use lists here vs. a structure as we transfer this data to Emacs via Swank."
   (push (cons (vector-to-list logging-level)
-	      (list (write-to-string function-name)
-		    (write-to-string function-parameters)
-		    (write-to-string function-body)
+	      (list function-name
+		    function-parameters
+		    function-body
 		    (mapcar (lambda (a) (write-to-string a)) function-arguments)
 		    (write-to-string function-result)))
 	*flat-list*))
@@ -125,6 +129,7 @@ We use lists here vs. a structure as we transfer this data to Emacs via Swank."
      (let ((result ,expr))
        (swank::eval-in-emacs
 	`(autologger-create-buffer ',*flat-list*))
+       (print *flat-list*)
        result)))
 
 (defun log (symbol)
@@ -132,8 +137,9 @@ We use lists here vs. a structure as we transfer this data to Emacs via Swank."
 Store its unlogged source code within the hash table."
   (unless (gethash symbol *logged-functions*)
     (let ((source-def (ibcl:source symbol :function)))
-      (setf (gethash symbol *logged-functions*) source-def)
-      (eval `(log-defun ,(second source-def) ,(third source-def) ,@(nthcdr 3 source-def))))))
+      (unless (contains-lambda-list-keywords source-def)
+	(setf (gethash symbol *logged-functions*) source-def)
+	(eval `(log-defun ,(second source-def) ,(third source-def) ,@(nthcdr 3 source-def)))))))
 
 (defun unlog (symbol)
   "Remove a function from the *logged-functions* table
@@ -142,10 +148,16 @@ and reset it to its old definition (prior to transformation to include logging).
     (eval `(ibcl:defun ,(second orig-source) ,(third orig-source) ,@(nthcdr 3 orig-source))))
   (remhash symbol *logged-functions*))
 
-(defun unlog-all ()
+(defun clear-all-logs ()
   "Unlog all functions in *logged-functions*."
   (loop for key being the hash-keys of *logged-functions*
-     do (unlog key)))
+     do (unlog key))
+  (print "All logged functions cleared."))
+
+(defun show-all-logs ()
+  (declare (special *logged-functions*))
+  (loop for key in (hash-keys *logged-functions*)
+     do (print key)))
 
 (defun all-logs ()
   "Extract all logged functions found in *logged-functions* and render Autologger's Emacs Menu Buffer."
@@ -164,6 +176,13 @@ and reset it to its old definition (prior to transformation to include logging).
 ;;; 3.0 Internal Functions
 ;;; *************************************************************************
 
+(defun contains-lambda-list-keywords (function-definition)
+  "Returns T if function's lambda list contains lambda list keywords and prints this to screen."
+  (when (loop for item in (third function-definition)
+	   thereis (find item '(&key &rest &optional) :test #'symbol-name-equal-p))
+    (format t "Cannot log ~s due to presence of lambda-list keywords (&key, &rest and/or &optional)~%" (second function-definition))
+    t))
+
 (defun reset-log-data ()
   "Reset global variables used for logging to their starting values."
   (setf *flat-list* nil)
@@ -177,7 +196,14 @@ and reset it to its old definition (prior to transformation to include logging).
     (let ((collected-functions nil))
       (declare (special collected-functions))
       (recursive-collect-functions function-definition)
-      (remove-duplicates (remove-if-not #'fboundp collected-functions)))))
+      (keep-only-user-functions collected-functions))))
+
+(defun keep-only-user-functions (collected-functions)
+  "Remove all symbols that are not user-defined top-level functions and also any duplicates."
+  (remove-duplicates (remove-if-not #'(lambda (a)
+					(and (fboundp a)
+					     (not (macro-function a))))
+				    collected-functions)))
 
 (defun recursive-collect-functions (fn-list)
   (declare (special collected-functions))
