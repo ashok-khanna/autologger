@@ -36,6 +36,7 @@ The best part of Autologger is that it will recursively step through a function 
 
 ```lisp
 (in-package :ibcl)
+
 (defun sum (a b) (+ a b))
 (defun prd (a b) (* a b))
 (defun div (a b) (/ a b))
