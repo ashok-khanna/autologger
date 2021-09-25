@@ -46,10 +46,6 @@
     (message buffer-name)))
 
 
-
-
-(global-set-key (kbd "C-c a") 'autologger-jump-to-buffer)
-
 (defun autologger-jump-to-buffer (arg)
   (interactive "sEnter autologger buffer number to jump to (RET to go to newest): ")
   (cond ((equal arg "")
