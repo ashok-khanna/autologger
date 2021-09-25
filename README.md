@@ -107,3 +107,10 @@ You will need to switch from the `CL` package and into `IBCL` in your programs t
   (:use :ibcl)           ; <-- Use :IBCL here and not :CL
   (:export ...))
 ```
+If you want to add `AUTOLOGGER` as a use-package within your package definitions, you will need to also add the following `:shadowing-import-form` command to avoid conflicts with `CL` or `IBCL` on the symbol LOG:
+
+```lisp
+(defpackage :package-name
+  (:use :ibcl	:autologger)
+  (:shadowing-import-from :autologger :log))
+```
