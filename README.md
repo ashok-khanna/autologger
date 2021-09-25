@@ -53,7 +53,7 @@ The best part of Autologger is that it will recursively step through a function 
 
 (log:launch (complex-fn 1 2))
 ```
-![Screenshot](https://github.com/ashok-khanna/autologger/blob/5ccc1db899c8b2382df8debd5acecc9c2fa18da5/screenshot.png)
+![Screenshot](https://github.com/ashok-khanna/autologger/blob/5109f601e31797c81d95c5b6a344c0e0676018b1/screenshot.png)
 
 ## Exported Functions
 Function | Description 
