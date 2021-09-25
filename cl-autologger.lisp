@@ -154,7 +154,7 @@ and reset it to its old definition (prior to transformation to include logging).
   "Turn logging on for all user-defined top-level functions within FUNCTION-NAME."
   (loop for function-name in symbols
      do (let ((function-symbols (get-functions-in-definition function-name)))
-	  (log function-symbols))))
+	  (apply #'log function-symbols))))
 
 (defun unlog-all ()
   "Unlog all functions in *logged-functions*."
@@ -329,18 +329,27 @@ the second."
 ;; List of all CL Standard Function Symbols
 
 ;; Created with the following:
-;; (defun get-all-symbols (&optional package)
-;;   (let ((lst ())
-;;         (package (find-package package)))
-;;     (do-all-symbols (s lst)
-;;       (when (fboundp s)
-;;         (if package
-;;             (when (eql (symbol-package s) package)
-;;               (push s lst))
-;;             (push s lst))))
-;;     lst))
-;;
-;; (defparameter *cl-function-symbols* (get-all-symbols :cl))
+(defun get-all-symbols (&optional package)
+  (let ((lst ())
+        (package (find-package package)))
+    (do-all-symbols (s lst)
+      (when (fboundp s)
+        (if package
+            (when (eql (symbol-package s) package)
+              (push s lst))
+            (push s lst))))
+    lst))
+
+;; Test
+
+(let ((macros 0) (funs 0) (specops 0)) 
+           (do-external-symbols (s "CL")
+             (cond ((special-operator-p s) (incf specops))
+                   ((macro-function s)     (incf macros))
+                   ((fboundp s)            (incf funs))))
+           (list :macros macros :functions funs :special-operators specops))
+
+(defparameter *cl-function-symbols* (get-all-symbols :cl))
 ;;
 ;; https://stackoverflow.com/questions/1511981/how-to-examine-list-of-defined-functions-from-common-lisp-repl-prompt
 
