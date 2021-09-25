@@ -165,8 +165,6 @@
       (beginning-of-line line-pos))))
 
 
-cl:eval (cl:read-from-string 
-
 (defun autologger-menu-save ()
   (interactive)
   (let ((symbol-data (loop for item in (cdr autologger-menu-data)
