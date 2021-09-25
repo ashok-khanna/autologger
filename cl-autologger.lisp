@@ -340,7 +340,6 @@ the second."
             (push s lst))))
     lst))
 
-;; Test
 
 (let ((macros 0) (funs 0) (specops 0)) 
            (do-external-symbols (s "CL")
