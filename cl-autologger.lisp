@@ -36,7 +36,7 @@
 (defpackage :autologger
   (:use :ibcl)
   (:shadow :log)
-  (:export :log :unlog :unlog-all :launch :select-logs :all-logs :log-all-within)
+  (:export :log :unlog :unlog-all :launch :select-logs :all-logs :log-all-within :autolaunch)
   (:nicknames :log)
   (:documentation " 
 
@@ -110,7 +110,7 @@ its arguments and results into global variable *flat-list*."
 
 (defun generate-logging-level (levels counter)
   "Generate a new logging level by appending counter to the existing level."
-  (let ((x (vector-copy levels)))
+  (let ((x (copy-adjustable-vector levels)))
     (vector-push-extend counter x)
     x))
 
@@ -131,6 +131,14 @@ We use lists here vs. a structure as we transfer this data to Emacs via Swank."
 ;;; *************************************************************************
 
 ;; Autologger is typically called from top-level
+
+
+;; (defun autolaunch (expr)
+;;   "A crude autolauncher that clears all logging, then logs all loggable functions within EXPR, launches and then unlogs all again."
+;;   (unlog-all)
+;;   (log-all-within (car 'expr))
+;;   (launch expr)
+;;   (unlog-all))
 
 (defmacro launch (expr)
   "Evalautes an expression and then displays logging results within an Autologger Buffer."
@@ -322,7 +330,7 @@ the second."
   (when (and (symbolp a) (symbolp b))
     (equal (symbol-name a) (symbol-name b))))
 
-(defun vector-copy (vector)
+(defun copy-adjustable-vector (vector)
   "Make a copy of VECTOR."
   (map-into
    (make-array (array-dimensions vector) :adjustable (adjustable-array-p vector)
